@@ -1,0 +1,246 @@
+# Choose and connect model services
+
+Read this when the work needs model access, the user brings an API key or deployment, or a selected
+service cannot fulfill the request. This page owns the connection decision and project extension
+path. [Profile](profile.md) owns configuration, credentials and routing; [local tools](local-tools.md)
+owns local preparation; [project-owned providers](project-providers.md) owns the concrete
+package installation, capability bindings and service-specific limits for a project's own image,
+video and speech services. Material Craft owns what the generated or transformed media should do.
+
+Go to [service choice](#choose-the-practical-capability-path-with-the-user),
+[project Provider connection](#connect-the-projects-own-services),
+[BYOK connection](#connect-a-service-the-user-brings),
+[project implementation](#implement-the-missing-capability-in-the-project), or
+[diagnosis](#diagnose-the-actual-connection) as needed.
+
+## Start from the capability the work needs
+
+Identify the next useful result and the material already available. A face replacement or motion
+reference task needs an implementation supporting that operation and its actual references.
+It does not automatically require transcription, an image-generation step or a local render browser.
+An existing Output can satisfy a Run without another model call; [Build planning](../production/builds.md#plan-the-selected-run)
+identifies the remaining requests when a Run exists.
+
+Keep these responsibilities clear:
+
+| Part | What it decides |
+| --- | --- |
+| Model | Authored request meaning: exact model, text/media inputs, reference roles, parameters and result types |
+| Provider | How to fulfill that capability through an API or local process |
+| Endpoint | One configured Provider instance using a particular service, account or deployment |
+| Runtime Profile | Which Endpoints and Credential Stores are selected, and explicit bindings where needed |
+
+One Model can be served by different Providers when they implement its exact capability. One Provider
+can implement several Models. Installing a Model describes requests; it does not grant service access.
+Having a key grants only whatever the issuing service permits; it does not implement that service's API.
+
+## Choose the practical capability path with the user
+
+Start from the service the user already has or has chosen. The project's own Provider packages are
+the route; they map each Model's ports onto that service's protocol. A Profile may mix services by
+capability. The concrete installation for the project's image, video and speech services is in
+[project-owned providers](project-providers.md).
+
+When the service already has a project Provider, reuse it. When it has none, implement the needed
+capability as a project package through the same public interfaces. A user's own API key connects
+the service that issued it; it does not implement that service's API. A key, a subscription and a
+similar model label do not establish the required
+request shape, reference support or result lifecycle.
+
+BYOK means using an account/key supplied by the user. A key connects the service that issued it; it
+does not implement that service's API. OAuth and static keys are credential methods, not different
+model capabilities. A Profile can mix services by capability.
+
+| Route | What the user needs | What the Agent does |
+| --- | --- | --- |
+| The project's Provider package | Service identity, API documentation/address and secure credential access | Build and install the package, configure its Endpoint and bind the capability |
+| A chosen deployment | Its serving API, access and compute/account choice | Connect that API; deploy only if deployment is actually part of the requested work |
+| Local inference | A suitable machine and an agreed preparation choice | Assess tools, resources and inference cost, then prepare the selected local Provider |
+
+Carry a suitable existing choice forward. Compare remaining setup work, capabilities, hardware,
+download/inference time and account costs. Ready local WhisperX can be useful immediately; first-time
+large-model preparation is a different choice. Cached weights reduce work but do not choose the route.
+A mixed setup, such as local alignment and project-owned video generation, is ordinary.
+
+Explain consequential choices before a new account connection, substantial preparation or paid work.
+Use the user's settled account, budget and preparation scope without asking again for each command.
+Record decisions in the project's Brief or continuation notes. Revisit a route when new evidence changes
+its practicality; a failed service does not authorize switching the account or billing route.
+
+Hypit is the open-source tool. Hosted model services have their own accounts and billing.
+An installed Skill or executable supplies no model credits. A subscription alone does not establish
+access to the required model API. Explain cost for the actual remaining work and reuse;
+[Builds](../production/builds.md#work-within-the-agreed-paid-scope) owns spending estimates and submission.
+
+## Connect the project's own services
+
+The project's selected image, video and speech Providers are declared in `hypit.runtime.json` and
+bound by complete capability key. Their packages, Profile fragment, credential steps, verified
+limits and failure evidence are in [project-owned providers](project-providers.md). Use the
+actual Endpoint names, package names and credential keys from that project. A starter Profile may
+still contain entries the project does not use; replace them rather than extending them.
+
+A service's own console issues that service's credentials. A key, a subscription and a similar
+model label do not establish the required request shape, reference support or result lifecycle.
+
+## Connect a service the user brings
+
+### Establish the service and intended operation
+
+Use already supplied information first. If something essential is missing, ask for the service name
+and API documentation or base address, plus the desired model/operation. Ask for secure authorization
+when the configured connection is ready; the user should not paste a key into the conversation.
+A key alone does not explain whether a service offers chat, images, reference-driven video,
+face replacement or motion control.
+
+The Agent owns API research, package implementation and Profile wiring. Explain what connection work
+remains in terms of the requested result. A service's own console issues that service's credentials;
+it is not where another vendor's key is registered.
+
+### Decide what actually needs changing
+
+| User's situation | Appropriate action |
+| --- | --- |
+| Replace a credential for the same configured service/account | Update that Store entry; preserve its Endpoint reference |
+| Add another account on the same service | Add an Endpoint using the same Provider and a distinct credential key |
+| Use another deployment with the same complete protocol | Use the Provider's supported address configuration |
+| A published Provider implements the required Model for this service | Install the selected package version if needed; configure its Endpoint, credential slots and routing |
+| The Model exists but the API differs | Implement a project Provider for the existing capability |
+| The requested model/operation is not described | Add a project Model and a Provider implementing that capability |
+| An API works without a credential | Configure the Endpoint as its Provider declares; no auth command is needed |
+| Compute is available but no model service exists yet | Establish the selected serving deployment before connecting inference |
+
+Similar model labels and “OpenAI-compatible” branding do not establish matching upload, reference,
+job, result or authentication protocols. Changing `baseUrl` is valid only when the complete required
+protocol matches. Preserve authored requests: a narrower Provider reports its actual support rather
+than silently reducing duration, dropping references or changing resolution.
+
+### Configure, authorize and route the selected implementation
+
+Read that Provider's configuration and credential slots. Field names such as `apiKey` and `baseUrl`
+are Provider-owned, not universal Profile fields.
+
+For a concrete implementation example, the Distribution's `examples/provider-package` contains
+image and video Providers. After adapting and installing its video package for the real service,
+its Profile fragment has this shape:
+
+```json
+{
+  "credentials": {
+    "local": { "use": "@hypit/credential-store-local" }
+  },
+  "endpoints": {
+    "videos.personal": {
+      "use": "@example/provider-videos",
+      "config": {
+        "baseUrl": "https://videos.example",
+        "apiKey": { "store": "local", "key": "videos.personal" }
+      }
+    }
+  },
+  "bindings": {
+    "@hypit/seedance@1#seedance-2-mini": "videos.personal"
+  }
+}
+```
+
+The example API and address are illustrative, not a working vendor connection. Replace its transport
+and address with the selected service's actual protocol, and use the installed package name.
+The capability above is the existing Seedance Mini capability that this example implements;
+copy the real Model's complete capability reference for a different request.
+
+Then use the declared acquisition method:
+
+```bash
+hypit auth login videos.personal
+hypit plan ./production.svrun
+hypit pricing ./production.svrun
+```
+
+The example Provider has a writable key slot and no browser flow, so login securely prompts for the
+key. An Endpoint declaring OAuth instead opens its flow; `--from <private-file>` selects file import.
+A read-only environment Store is configured in the execution environment rather than through login.
+
+The binding directs this capability to the selected Endpoint when multiple implementations exist.
+It does not send another service's key to this Endpoint. Other capabilities can keep their existing route.
+`plan` reports support and cheap readiness for known inputs; `pricing` reads service-owned rate
+information. Submit the real request within the agreed scope; these checks do not prove that a paid
+generation has already succeeded.
+
+## Implement the missing capability in the project
+
+Inspect the Model vocabulary, its README and the service's API. Reuse a compatible implementation
+when present; otherwise create the needed `packages/provider-…` in this production. A project
+extension uses public interfaces and does not require an official framework release.
+
+Follow one actual request:
+
+1. Identify the exact capability, input roles and result type. A new Model owns new author semantics;
+   another API for an existing Model belongs in its Provider.
+2. Map text, scalar parameters and every supplied media role/field to the real API. Declare actual
+   service limits through `supports`, including what is knowable before generated inputs exist.
+   Account-visible catalogue evidence can refine availability when the service provides it.
+3. Implement immediate execution or the real `start`, `poll` and `collect` lifecycle. Checkpoint
+   an acknowledged task receipt promptly; Runtime owns continued scheduling. Report progress and
+   preserve public failure evidence without exposing credentials or signed URLs.
+4. Admit returned media through `context.resources` and return the declared result type. Configure
+   capacity for the actual resource and expose the service's price source and applicable units.
+5. Compile and install the package with the project's package manager, select its `use` and bindings,
+   and exercise the requested path within the user's existing authorization.
+
+A complete working set for image, video and speech ships in `assets/provider-packages/`;
+[project-owned providers](project-providers.md) explains its installation and the
+service-specific behaviour it encodes.
+
+Locate the complete `examples/provider-package/README.md` through `hypit paths`. Use its
+`provider-images` or `provider-videos` package according to the request shape. The video example
+covers image/video/audio references, first/last frames, required visual-reference person classification and separate
+result collection. Its mappings, limits and transport are examples to adapt, not a new shared API.
+Implement only the service capabilities this work needs.
+
+The Provider's `supports` response describes its actual range without narrowing the shared Model or
+silently changing an author's request.
+
+## Use the public SDK
+
+| Public import | Accurate interface owner |
+| --- | --- |
+| `@hypit/generation/model` | Model ports and Producer/Need construction |
+| `@hypit/generation` | Generated-media values and request/mapping helpers |
+| `@hypit/hypit/endpoint` | Execution, resources, credentials, support, receipts and capacity |
+| `@hypit/runtime-local/extension` | Profile activation, diagnostics and Managed Programs for the official local Runtime |
+| `@hypit/hypit/author`, `producer`, `admission`, `markup` | Author graphs, deterministic Producers, Type admission and Markup Surfaces respectively |
+
+These packages' READMEs ship with the Distribution and own precise APIs. Use the selected
+`@hypit/hypit` release as the extension's development dependency; ship compiled JavaScript and normal
+runtime dependencies. The copied repository example's `workspace:*` development dependencies need
+the appropriate installed release, as its README explains.
+[Component sharing](../production/component-sharing.md) owns later owner-managed distribution.
+
+## Use your own model deployment
+
+If the user already has a serving API, connect it by the same Provider path. If they have compute
+but no service, use that platform's current deployment guidance and the model's serving instructions.
+Explain persistence, hardware and cost for the actual deployment. Management credentials and inference
+credentials may serve different operations. Deployment lifetime remains separate from generation jobs.
+
+Local inference uses the same boundary. A Provider can invoke a local process; a Managed Program
+declares preparation and an optional persistent helper when needed. [Local tools](local-tools.md)
+explains using that declaration. The selected implementation owns its service protocol.
+
+## Diagnose the actual connection
+
+A missing adapter, rejected credential, unavailable model, unsupported input and exhausted quota
+call for different actions. Keep the Endpoint, model/operation and returned public status/code/reason
+with the evidence. An isolated `401` or `model_not_found` does not prove that payment or another
+login will fix the request. Read account-visible service information when availability is in question.
+
+Use current API documentation and the installed implementation to pursue a proportionate fix.
+A relevant [release update](distribution.md#check-and-update-the-relevant-installation), configuration
+change or project adapter repair can move the work forward. Report the actual change and what was
+verified; a repaired installation's success is distinct from the original release's behavior.
+Framework maintenance follows its repository instructions; this Skill owns production and public
+package extensions.
+
+Keep independent work moving when a capability is unavailable, and explain the specific deliverable
+still waiting for it. Preserve the user's chosen service and intended result while resolving that gap.

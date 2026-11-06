@@ -1,0 +1,11 @@
+This repository is a derivative work of the Hypit Skill and Distribution.
+
+Original work: © 2026 Hypit.AI
+License: modified Apache License 2.0 (see LICENSE)
+
+Modifications: © 2026 玄鱼智创
+The Provider packages, documentation and Runtime examples under assets/provider-packages/
+and references/environment/ adapt Hypit to 玄鱼智创's own sub2api and TF-router services.
+
+The derivative is made available under the same license as the original work and is not
+supplied for commercial gain.

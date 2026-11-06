@@ -1,0 +1,47 @@
+{
+  "format": "hypit.runtime-local@1",
+  "dataRoot": ".hypit/runtimes/local",
+  "credentials": {
+    "local": {
+      "use": "@hypit/credential-store-local"
+    }
+  },
+  "endpoints": {
+    "media.local": {
+      "use": "@hypit/media-local"
+    },
+    "html.local": {
+      "use": "@hypit/provider-html-local"
+    },
+    "images.sub2api": {
+      "use": "@local/provider-sub2api-images",
+      "pool": "sub2api",
+      "config": {
+        "baseUrl": "https://<host>/v1",
+        "apiKey": {
+          "store": "local",
+          "key": "sub2api.images"
+        },
+        "concurrency": 1
+      }
+    },
+    "media.toonflow": {
+      "use": "@local/provider-toonflow-media",
+      "pool": "toonflow",
+      "config": {
+        "baseUrl": "https://api.toonflow.net/v1",
+        "apiKey": {
+          "store": "local",
+          "key": "toonflow.media"
+        },
+        "concurrency": 2
+      }
+    }
+  },
+  "bindings": {
+    "@hypit/gpt-image@1#gpt-image-2": "images.sub2api",
+    "@hypit/seedance@1#seedance-2-mini": "media.toonflow",
+    "@hypit/minimax-h3@1#minimax-h3": "media.toonflow",
+    "@hypit/fishaudio-speech@1#voice-clone": "media.toonflow"
+  }
+}

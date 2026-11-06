@@ -1,0 +1,4 @@
+interface:
+  display_name: "玄鱼智创skills"
+  short_description: "用自建生图、生视频、生音频 Provider 制作和交付视频"
+  default_prompt: "Use $shop-video-skills to make or revise the video from my brief and any supplied references."
