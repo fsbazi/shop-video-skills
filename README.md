@@ -32,7 +32,7 @@ assets/provider-packages/          两个可编译的 Provider 包与 runtime �
 把整个目录放到你的 Agent skills 目录，例如：
 
 ```bash
-git clone https://github.com/<owner>/shop-video-skills.git ~/.zcode/skills/shop-video-skills
+git clone https://github.com/fsbazi/shop-video-skills.git ~/.zcode/skills/shop-video-skills
 ```
 
 调用：`$shop-video-skills`。
